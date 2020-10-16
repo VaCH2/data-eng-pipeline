@@ -10,5 +10,6 @@
 
 ## Install requirements
 * Install [Helm](https://helm.sh/docs/intro/install/)
+* set environment variable with [set.bat])(set.bat), as explained [here](https://docs.confluent.io/current/installation/operator/co-configure.html#co-create-provider-yaml)
 
 
