@@ -5,11 +5,53 @@
 * Make sure you install the Beta components as well
 * Follow the steps to connect to project and set default region  
 * Enable [authentication](https://cloud.google.com/kubernetes-engine/docs/how-to/api-server-authentication) 
-* For Windows, execute [create_cluster.bat](create_cluster.bat) to create the cluster. Other systems: copy-paste the gcloud command. 
-* For Windows, execute [setup_GCP_client.bat](setup_GCP_client.bat) to authenticate a GCP service account, required for Kafka. As only one cluster is used in this setup, we follow the steps described [here](https://cloud.google.com/kubernetes-engine/docs/how-to/api-server-authentication#service_within_the_same_cluster)
+* Execute [create_cluster.sh](create_cluster.sh) to create the cluster.
+* --not necessary-- Execute [setup_GCP_client.bat](setup_GCP_client.bat) to authenticate a GCP service account, required for Kafka. As only one cluster is used in this setup, we follow the steps described [here](https://cloud.google.com/kubernetes-engine/docs/how-to/api-server-authentication#service_within_the_same_cluster)
 
 ## Install requirements
 * Install [Helm](https://helm.sh/docs/intro/install/)
-* set environment variable with [set.bat])(set.bat), as explained [here](https://docs.confluent.io/current/installation/operator/co-configure.html#co-create-provider-yaml)
+* Set an environment variable with [set.bat])(set.bat) (for Windows), as explained [here](https://docs.confluent.io/current/installation/operator/co-configure.html#co-create-provider-yaml)
+* Install the Confluent operator by executing [install_operator.sh](install_operator.sh)
+* Install Zookeeper by executing [install_zookeeper.sh]([install_zookeeper.sh)
+* Install the Kafka broker by executing [install_kafka.sh](install_kafka.sh)
+
+## validate kafka (optional)
+To ensure Kafka is installed properly, you can create a test topic and publish and consume some messages.
+
+1. Open two terminals, and run the following command in each terminal
+```
+kubectl -n default exec -it kafka-0 bash
+``` 
+
+2. In one terminal run the following commands (change the username and password if necessary) 
+``` 
+cat <<EOF > kafka.properties
+bootstrap.servers=kafka:9071
+sasl.jaas.config=org.apache.kafka.common.security.plain.PlainLoginModule required username=test password=test123;
+sasl.mechanism=PLAIN
+security.protocol=SASL_PLAINTEXT
+EOF 
+```
+
+```
+kafka-topics --create --zookeeper zookeeper.default.svc.cluster.local:2181/kafka-default --replication-factor 3 --partitions 1 --topic testtopic
+```
+
+```
+seq 10000 | kafka-console-producer --topic testtopic --broker-list kafka.default.svc.cluster.local:9071  --producer.config kafka.properties
+```
+
+3. In one terminal execute the following command. You will see the published messages on the testtopic
+
+```
+kafka-console-consumer --from-beginning --topic testtopic --bootstrap-server  kafka.default.svc.cluster.local:9071 --consumer.config kafka.properties
+
+```
+
+
+
+
+
+
 
 
